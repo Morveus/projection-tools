@@ -45,6 +45,9 @@ const translations = {
     ratioMax: "Ratio max",
     noProjector: "Selectionnez un projecteur ou entrez un ratio manuel",
     zoomRange: "Plage de zoom",
+    screenHeight: "Hauteur de l'ecran",
+    ceilingHeight: "Hauteur du plafond",
+    roomSetup: "Configuration de la piece",
   },
   en: {
     title: "Projection Tools",
@@ -85,6 +88,9 @@ const translations = {
     ratioMax: "Ratio max",
     noProjector: "Select a projector or enter a manual ratio",
     zoomRange: "Zoom range",
+    screenHeight: "Screen height",
+    ceilingHeight: "Ceiling height",
+    roomSetup: "Room setup",
   },
 };
 
@@ -102,6 +108,8 @@ let state = {
   lang: "fr",
   theme: "dark",
   filter: "all",
+  screenHeight: 0.8,
+  ceilingHeight: 2.5,
 };
 
 // ── DOM refs ───────────────────────────────────────────
@@ -169,10 +177,21 @@ function cacheDOMRefs() {
     shareBtn: document.getElementById("share-btn"),
     unitToggle: document.querySelectorAll(".unit-btn"),
 
+    // Room setup sliders
+    screenHeightSlider: document.getElementById("screen-height-slider"),
+    screenHeightNumber: document.getElementById("screen-height-number"),
+    screenHeightGroup: document.getElementById("screen-height-group"),
+    ceilingHeightSlider: document.getElementById("ceiling-height-slider"),
+    ceilingHeightNumber: document.getElementById("ceiling-height-number"),
+    ceilingHeightGroup: document.getElementById("ceiling-height-group"),
+
     // Labels (for i18n)
     labelDistance: document.getElementById("label-distance"),
     labelDiagonal: document.getElementById("label-diagonal"),
     labelWidth: document.getElementById("label-width"),
+    labelScreenHeight: document.getElementById("label-screen-height"),
+    labelCeilingHeight: document.getElementById("label-ceiling-height"),
+    cardTitleRoom: document.getElementById("card-title-room"),
     sideViewLabel: document.getElementById("side-view-label"),
     frontViewLabel: document.getElementById("front-view-label"),
     labelRatioMin: document.getElementById("label-ratio-min"),
@@ -206,6 +225,8 @@ function loadURLState() {
     if (urlState.manualRatioMax != null) state.manualRatioMax = urlState.manualRatioMax;
     if (urlState.useManual) state.useManual = urlState.useManual;
     if (urlState.units) state.units = urlState.units;
+    if (urlState.screenHeight != null) state.screenHeight = urlState.screenHeight;
+    if (urlState.ceilingHeight != null) state.ceilingHeight = urlState.ceilingHeight;
   }
 
   // Apply loaded state to DOM
@@ -218,6 +239,10 @@ function loadURLState() {
   els.ratioMinInput.value = state.manualRatioMin;
   els.ratioMaxInput.value = state.manualRatioMax;
   els.manualToggle.checked = state.useManual;
+  els.screenHeightSlider.value = state.screenHeight;
+  els.screenHeightNumber.value = state.screenHeight;
+  els.ceilingHeightSlider.value = state.ceilingHeight;
+  els.ceilingHeightNumber.value = state.ceilingHeight;
 
   if (state.useManual) {
     els.manualInputs.classList.add("visible");
@@ -368,6 +393,36 @@ function setupEventListeners() {
     }
   });
 
+  // Screen height slider/input
+  els.screenHeightSlider.addEventListener("input", () => {
+    state.screenHeight = parseFloat(els.screenHeightSlider.value);
+    els.screenHeightNumber.value = state.screenHeight;
+    updateCalculation();
+  });
+  els.screenHeightNumber.addEventListener("input", () => {
+    const val = parseFloat(els.screenHeightNumber.value);
+    if (!isNaN(val) && val >= 0.3 && val <= 2.5) {
+      state.screenHeight = val;
+      els.screenHeightSlider.value = val;
+      updateCalculation();
+    }
+  });
+
+  // Ceiling height slider/input
+  els.ceilingHeightSlider.addEventListener("input", () => {
+    state.ceilingHeight = parseFloat(els.ceilingHeightSlider.value);
+    els.ceilingHeightNumber.value = state.ceilingHeight;
+    updateCalculation();
+  });
+  els.ceilingHeightNumber.addEventListener("input", () => {
+    const val = parseFloat(els.ceilingHeightNumber.value);
+    if (!isNaN(val) && val >= 2.0 && val <= 4.0) {
+      state.ceilingHeight = val;
+      els.ceilingHeightSlider.value = val;
+      updateCalculation();
+    }
+  });
+
   // Unit toggle
   els.unitToggle.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -416,6 +471,11 @@ function applyLanguage() {
   if (els.labelDistance) els.labelDistance.textContent = t("distance");
   if (els.labelDiagonal) els.labelDiagonal.textContent = t("screenSize");
   if (els.labelWidth) els.labelWidth.textContent = t("desiredWidth");
+
+  // Room setup labels
+  if (els.labelScreenHeight) els.labelScreenHeight.textContent = t("screenHeight");
+  if (els.labelCeilingHeight) els.labelCeilingHeight.textContent = t("ceilingHeight");
+  if (els.cardTitleRoom) els.cardTitleRoom.textContent = t("roomSetup");
 
   // Canvas labels
   if (els.sideViewLabel) els.sideViewLabel.textContent = t("sideView");
@@ -544,7 +604,7 @@ function updateCalculation() {
   if (state.mode === "distance") {
     if (!ratios) {
       resultsHTML = `<div class="result-row"><span class="result-label" style="text-align:center;width:100%">${t("noProjector")}</span></div>`;
-      updateVisualization({ distance: state.distance, screenWidthMin: 200, screenWidthMax: 250, screenHeightMin: 112, screenHeightMax: 140, isUST: false });
+      updateVisualization({ distance: state.distance, screenWidthMin: 200, screenWidthMax: 250, screenHeightMin: 112, screenHeightMax: 140, isUST: false, screenHeight: state.screenHeight, ceilingHeight: state.ceilingHeight });
     } else {
       const result = distanceToScreen(state.distance, ratios.min, ratios.max);
       resultsHTML = renderDistanceResults(result);
@@ -557,6 +617,8 @@ function updateCalculation() {
         screenHeightMin: result.min.heightCm,
         screenHeightMax: result.max.heightCm,
         isUST,
+        screenHeight: state.screenHeight,
+        ceilingHeight: state.ceilingHeight,
       });
     }
   } else if (state.mode === "screen") {
@@ -575,6 +637,8 @@ function updateCalculation() {
         screenHeightMin: result.screen.heightCm,
         screenHeightMax: result.screen.heightCm,
         isUST,
+        screenHeight: state.screenHeight,
+        ceilingHeight: state.ceilingHeight,
       });
     }
   } else if (state.mode === "ratio") {
@@ -589,6 +653,8 @@ function updateCalculation() {
       screenHeightMin: result.screen.heightCm,
       screenHeightMax: result.screen.heightCm,
       isUST: result.ratio < 0.5,
+      screenHeight: state.screenHeight,
+      ceilingHeight: state.ceilingHeight,
     });
   }
 

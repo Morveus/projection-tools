@@ -15,6 +15,8 @@ let currentAnim = {
   screenHeightMin: 112,
   screenHeightMax: 140,
   isUST: false,
+  screenHeight: 0.8,
+  ceilingHeight: 2.5,
 };
 let targetAnim = { ...currentAnim };
 let animFrame = null;
@@ -65,6 +67,8 @@ export function updateVisualization(params) {
     screenHeightMin: params.screenHeightMin || 112,
     screenHeightMax: params.screenHeightMax || 140,
     isUST: params.isUST || false,
+    screenHeight: params.screenHeight != null ? params.screenHeight : 0.8,
+    ceilingHeight: params.ceilingHeight != null ? params.ceilingHeight : 2.5,
   };
 }
 
@@ -142,7 +146,7 @@ function drawSideView(canvas, state) {
 
   // Room dimensions in "room meters"
   const roomDepth = Math.max(state.distance + 1.5, 5);
-  const roomHeight = 3.0; // 3m ceiling
+  const roomHeight = state.ceilingHeight || 2.5;
 
   // Margins
   const mx = 50 * dpr;
@@ -178,7 +182,7 @@ function drawSideView(canvas, state) {
 
   // Screen on the far wall (right side)
   const avgScreenH = (state.screenHeightMin + state.screenHeightMax) / 2 / 100; // in meters
-  const screenBottom = 0.6; // 60cm from floor
+  const screenBottom = state.screenHeight != null ? state.screenHeight : 0.8;
   const screenTop = screenBottom + avgScreenH;
 
   // Screen rectangle
@@ -293,7 +297,7 @@ function drawFrontView(canvas, state) {
 
   // Wall dimensions
   const wallWidth = 5.0; // 5m
-  const wallHeight = 3.0; // 3m
+  const wallHeight = state.ceilingHeight || 2.5;
 
   const mx = 40 * dpr;
   const my = 25 * dpr;
@@ -325,7 +329,7 @@ function drawFrontView(canvas, state) {
 
   // Center of wall
   const cx = wallWidth / 2;
-  const screenBottom = 0.6;
+  const screenBottom = state.screenHeight != null ? state.screenHeight : 0.8;
 
   // Max projection (if zoom)
   const hasZoom = Math.abs(state.screenWidthMax - state.screenWidthMin) > 1;

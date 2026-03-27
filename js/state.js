@@ -15,6 +15,8 @@ export function encodeState(state) {
   if (state.manualRatioMax != null) params.set("rmax", String(state.manualRatioMax));
   if (state.useManual) params.set("manual", "1");
   if (state.units) params.set("units", state.units);
+  if (state.screenHeight != null) params.set("sh", String(state.screenHeight));
+  if (state.ceilingHeight != null) params.set("ch", String(state.ceilingHeight));
   return params.toString();
 }
 
@@ -37,6 +39,8 @@ export function decodeState(hash) {
   if (params.has("rmax")) state.manualRatioMax = parseFloat(params.get("rmax"));
   if (params.has("manual")) state.useManual = params.get("manual") === "1";
   if (params.has("units")) state.units = params.get("units");
+  if (params.has("sh")) state.screenHeight = parseFloat(params.get("sh"));
+  if (params.has("ch")) state.ceilingHeight = parseFloat(params.get("ch"));
 
   return state;
 }
