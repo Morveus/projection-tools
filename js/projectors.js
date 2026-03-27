@@ -1518,3 +1518,43 @@ export const projectors = [
     "popular": false
   }
 ];
+
+export function getBrands() {
+  return [...new Set(projectors.map(p => p.brand))].sort();
+}
+
+export function searchProjectors(query, filters = {}) {
+  let results = [...projectors];
+
+  if (filters.resolution && filters.resolution !== "all") {
+    results = results.filter(p => p.resolution === filters.resolution);
+  }
+
+  if (filters.type && filters.type !== "all") {
+    results = results.filter(p => p.type === filters.type);
+  }
+
+  if (query && query.trim()) {
+    const q = query.toLowerCase().trim();
+    const terms = q.split(/\s+/);
+    results = results.filter(p => {
+      const text = `${p.brand} ${p.model}`.toLowerCase();
+      return terms.every(t => text.includes(t));
+    });
+  }
+
+  return results;
+}
+
+export function groupByBrand(list) {
+  const groups = {};
+  for (const p of list) {
+    if (!groups[p.brand]) groups[p.brand] = [];
+    groups[p.brand].push(p);
+  }
+  return groups;
+}
+
+export function findProjector(id) {
+  return projectors.find(p => p.id === id) || null;
+}

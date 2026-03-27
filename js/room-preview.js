@@ -3,6 +3,10 @@
 
 const PERSON_HEIGHT_M = 1.70;
 
+// Preload person silhouette image
+const personImage = new Image();
+personImage.src = 'assets/silhouette.png';
+
 // Animation state
 let currentAnim = {
   distance: 3.0,
@@ -98,255 +102,23 @@ function getCSSColor(name, fallback) {
 }
 
 /**
- * Draw a realistic standing person silhouette (3/4 view)
+ * Draw person silhouette using preloaded PNG image
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} x - horizontal center of feet (canvas px)
  * @param {number} y - ground line (canvas px, y increases downward)
  * @param {number} h - total height in canvas px
- * @param {string} color - fill color
+ * @param {string} color - unused (kept for API compat)
  */
 function drawPersonSilhouette(ctx, x, y, h, color) {
+  if (!personImage.complete || !personImage.naturalWidth) return;
   ctx.save();
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.75;
 
-  // All coordinates are fractions of total height, origin at feet center.
-  // We define points as [fractionX * h, fractionY * h] where Y=0 is feet, Y=1 is top of head.
-  // The figure faces slightly right (3/4 view).
-
-  const s = h; // scale factor
-
-  ctx.beginPath();
-
-  // Start at the top of the head and trace clockwise.
-  // Head: oval, top-center roughly at (0.01, 1.0), head height ~1/7.5 of body
-  const headH = 1 / 7.5;
-  const headW = 0.075;
-  const headCx = 0.01;
-  const headCy = 1.0 - headH / 2;
-
-  // Top of head
-  const topX = x + headCx * s;
-  const topY = y - 1.0 * s;
-
-  // We trace the full outline as one closed path.
-  // Start at top of head, go right (clockwise)
-
-  ctx.moveTo(x + (headCx - 0.01) * s, y - 0.995 * s);
-
-  // Right side of head
-  ctx.bezierCurveTo(
-    x + (headCx + headW * 0.7) * s, y - 1.0 * s,
-    x + (headCx + headW) * s,       y - (1.0 - headH * 0.3) * s,
-    x + (headCx + headW) * s,       y - headCy * s
-  );
-  // Lower right head into jaw
-  ctx.bezierCurveTo(
-    x + (headCx + headW) * s,       y - (headCy - headH * 0.35) * s,
-    x + (headCx + headW * 0.6) * s, y - (1.0 - headH - 0.005) * s,
-    x + (headCx + 0.02) * s,        y - (1.0 - headH - 0.01) * s
-  );
-
-  // Neck right side
-  ctx.lineTo(x + 0.035 * s, y - 0.82 * s);
-
-  // Right shoulder
-  ctx.bezierCurveTo(
-    x + 0.08 * s,  y - 0.815 * s,
-    x + 0.14 * s,  y - 0.80 * s,
-    x + 0.17 * s,  y - 0.78 * s
-  );
-
-  // Right upper arm (slightly away from body)
-  ctx.bezierCurveTo(
-    x + 0.19 * s,  y - 0.77 * s,
-    x + 0.195 * s, y - 0.72 * s,
-    x + 0.185 * s, y - 0.66 * s
-  );
-
-  // Right elbow area
-  ctx.bezierCurveTo(
-    x + 0.18 * s,  y - 0.62 * s,
-    x + 0.165 * s, y - 0.58 * s,
-    x + 0.145 * s, y - 0.53 * s
-  );
-
-  // Right forearm / hand
-  ctx.bezierCurveTo(
-    x + 0.13 * s,  y - 0.49 * s,
-    x + 0.115 * s, y - 0.455 * s,
-    x + 0.10 * s,  y - 0.44 * s
-  );
-
-  // Hand (small bump)
-  ctx.bezierCurveTo(
-    x + 0.095 * s, y - 0.425 * s,
-    x + 0.10 * s,  y - 0.41 * s,
-    x + 0.09 * s,  y - 0.40 * s
-  );
-
-  // Rejoin torso right side at hip
-  ctx.bezierCurveTo(
-    x + 0.085 * s, y - 0.41 * s,
-    x + 0.09 * s,  y - 0.43 * s,
-    x + 0.095 * s, y - 0.46 * s
-  );
-  ctx.bezierCurveTo(
-    x + 0.10 * s,  y - 0.42 * s,
-    x + 0.105 * s, y - 0.38 * s,
-    x + 0.10 * s,  y - 0.35 * s
-  );
-
-  // Right hip
-  ctx.bezierCurveTo(
-    x + 0.10 * s,  y - 0.32 * s,
-    x + 0.10 * s,  y - 0.30 * s,
-    x + 0.095 * s, y - 0.28 * s
-  );
-
-  // Right leg (front leg, slightly forward)
-  ctx.bezierCurveTo(
-    x + 0.095 * s, y - 0.24 * s,
-    x + 0.10 * s,  y - 0.18 * s,
-    x + 0.10 * s,  y - 0.12 * s
-  );
-
-  // Right knee to ankle
-  ctx.bezierCurveTo(
-    x + 0.10 * s,  y - 0.08 * s,
-    x + 0.095 * s, y - 0.04 * s,
-    x + 0.09 * s,  y - 0.02 * s
-  );
-
-  // Right foot
-  ctx.bezierCurveTo(
-    x + 0.09 * s,  y - 0.008 * s,
-    x + 0.12 * s,  y - 0.001 * s,
-    x + 0.12 * s,  y - 0.0 * s
-  );
-  ctx.lineTo(x + 0.04 * s, y);
-
-  // Inner right leg going up
-  ctx.bezierCurveTo(
-    x + 0.04 * s,  y - 0.01 * s,
-    x + 0.045 * s, y - 0.08 * s,
-    x + 0.05 * s,  y - 0.15 * s
-  );
-  ctx.bezierCurveTo(
-    x + 0.055 * s, y - 0.20 * s,
-    x + 0.05 * s,  y - 0.24 * s,
-    x + 0.03 * s,  y - 0.27 * s
-  );
-
-  // Crotch
-  ctx.lineTo(x - 0.02 * s, y - 0.27 * s);
-
-  // Left leg (back leg, slightly behind)
-  ctx.bezierCurveTo(
-    x - 0.04 * s,  y - 0.24 * s,
-    x - 0.055 * s, y - 0.18 * s,
-    x - 0.06 * s,  y - 0.12 * s
-  );
-
-  // Left knee to ankle
-  ctx.bezierCurveTo(
-    x - 0.06 * s,  y - 0.08 * s,
-    x - 0.055 * s, y - 0.04 * s,
-    x - 0.05 * s,  y - 0.02 * s
-  );
-
-  // Left foot
-  ctx.bezierCurveTo(
-    x - 0.05 * s,  y - 0.008 * s,
-    x - 0.02 * s,  y - 0.001 * s,
-    x - 0.02 * s,  y - 0.0 * s
-  );
-  ctx.lineTo(x - 0.09 * s, y);
-
-  // Inner left leg going back up
-  ctx.bezierCurveTo(
-    x - 0.09 * s,  y - 0.01 * s,
-    x - 0.095 * s, y - 0.06 * s,
-    x - 0.10 * s,  y - 0.12 * s
-  );
-  ctx.bezierCurveTo(
-    x - 0.105 * s, y - 0.18 * s,
-    x - 0.10 * s,  y - 0.24 * s,
-    x - 0.095 * s, y - 0.28 * s
-  );
-
-  // Left hip
-  ctx.bezierCurveTo(
-    x - 0.095 * s, y - 0.32 * s,
-    x - 0.10 * s,  y - 0.36 * s,
-    x - 0.095 * s, y - 0.40 * s
-  );
-
-  // Left side torso going up
-  ctx.bezierCurveTo(
-    x - 0.09 * s,  y - 0.48 * s,
-    x - 0.09 * s,  y - 0.55 * s,
-    x - 0.095 * s, y - 0.60 * s
-  );
-
-  // Left arm (close to body, relaxed)
-  ctx.bezierCurveTo(
-    x - 0.10 * s,  y - 0.58 * s,
-    x - 0.115 * s, y - 0.54 * s,
-    x - 0.12 * s,  y - 0.50 * s
-  );
-
-  // Left hand
-  ctx.bezierCurveTo(
-    x - 0.125 * s, y - 0.47 * s,
-    x - 0.13 * s,  y - 0.445 * s,
-    x - 0.125 * s, y - 0.43 * s
-  );
-
-  // Left arm back up
-  ctx.bezierCurveTo(
-    x - 0.12 * s,  y - 0.44 * s,
-    x - 0.115 * s, y - 0.47 * s,
-    x - 0.11 * s,  y - 0.50 * s
-  );
-  ctx.bezierCurveTo(
-    x - 0.105 * s, y - 0.56 * s,
-    x - 0.11 * s,  y - 0.62 * s,
-    x - 0.12 * s,  y - 0.66 * s
-  );
-
-  // Left upper arm to shoulder
-  ctx.bezierCurveTo(
-    x - 0.13 * s,  y - 0.70 * s,
-    x - 0.14 * s,  y - 0.74 * s,
-    x - 0.15 * s,  y - 0.77 * s
-  );
-
-  // Left shoulder
-  ctx.bezierCurveTo(
-    x - 0.14 * s,  y - 0.79 * s,
-    x - 0.10 * s,  y - 0.81 * s,
-    x - 0.05 * s,  y - 0.82 * s
-  );
-
-  // Neck left side
-  ctx.lineTo(x - 0.03 * s, y - 0.82 * s);
-
-  // Left side of head
-  ctx.bezierCurveTo(
-    x + (headCx - 0.04) * s,        y - (1.0 - headH - 0.01) * s,
-    x + (headCx - headW * 0.8) * s, y - (headCy - headH * 0.35) * s,
-    x + (headCx - headW * 0.8) * s, y - headCy * s
-  );
-  // Upper left head back to top
-  ctx.bezierCurveTo(
-    x + (headCx - headW * 0.8) * s, y - (1.0 - headH * 0.3) * s,
-    x + (headCx - headW * 0.5) * s, y - 1.0 * s,
-    x + (headCx - 0.01) * s,        y - 0.995 * s
-  );
-
-  ctx.closePath();
-  ctx.fill();
+  // Draw the PNG silhouette scaled to the desired height
+  const aspectRatio = personImage.naturalWidth / personImage.naturalHeight;
+  const drawH = h;
+  const drawW = drawH * aspectRatio;
+  ctx.drawImage(personImage, x - drawW / 2, y - drawH, drawW, drawH);
 
   ctx.restore();
 }
