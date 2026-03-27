@@ -239,10 +239,10 @@ function loadURLState() {
   els.ratioMinInput.value = state.manualRatioMin;
   els.ratioMaxInput.value = state.manualRatioMax;
   els.manualToggle.checked = state.useManual;
-  els.screenHeightSlider.value = state.screenHeight;
-  els.screenHeightNumber.value = state.screenHeight;
-  els.ceilingHeightSlider.value = state.ceilingHeight;
-  els.ceilingHeightNumber.value = state.ceilingHeight;
+  if (els.screenHeightSlider) els.screenHeightSlider.value = state.screenHeight;
+  if (els.screenHeightNumber) els.screenHeightNumber.value = state.screenHeight;
+  if (els.ceilingHeightSlider) els.ceilingHeightSlider.value = state.ceilingHeight;
+  if (els.ceilingHeightNumber) els.ceilingHeightNumber.value = state.ceilingHeight;
 
   if (state.useManual) {
     els.manualInputs.classList.add("visible");
@@ -394,32 +394,39 @@ function setupEventListeners() {
   });
 
   // Screen height slider/input
-  els.screenHeightSlider.addEventListener("input", () => {
-    state.screenHeight = parseFloat(els.screenHeightSlider.value);
-    els.screenHeightNumber.value = state.screenHeight;
-    updateCalculation();
-  });
-  els.screenHeightNumber.addEventListener("input", () => {
-    const val = parseFloat(els.screenHeightNumber.value);
-    if (!isNaN(val) && val >= 0.3 && val <= 2.5) {
-      state.screenHeight = val;
-      els.screenHeightSlider.value = val;
+  if (els.screenHeightSlider) {
+    els.screenHeightSlider.addEventListener("input", () => {
+      state.screenHeight = parseFloat(els.screenHeightSlider.value);
+      if (els.screenHeightNumber) els.screenHeightNumber.value = state.screenHeight;
       updateCalculation();
-    }
-  });
+    });
+  }
+  if (els.screenHeightNumber) {
+    els.screenHeightNumber.addEventListener("input", () => {
+      const val = parseFloat(els.screenHeightNumber.value);
+      if (!isNaN(val) && val >= 0.3 && val <= 2.5) {
+        state.screenHeight = val;
+        if (els.screenHeightSlider) els.screenHeightSlider.value = val;
+        updateCalculation();
+      }
+    });
+  }
 
   // Ceiling height slider/input
-  els.ceilingHeightSlider.addEventListener("input", () => {
-    state.ceilingHeight = parseFloat(els.ceilingHeightSlider.value);
-    els.ceilingHeightNumber.value = state.ceilingHeight;
-    updateCalculation();
-  });
-  els.ceilingHeightNumber.addEventListener("input", () => {
-    const val = parseFloat(els.ceilingHeightNumber.value);
-    if (!isNaN(val) && val >= 2.0 && val <= 4.0) {
-      state.ceilingHeight = val;
-      els.ceilingHeightSlider.value = val;
+  if (els.ceilingHeightSlider) {
+    els.ceilingHeightSlider.addEventListener("input", () => {
+      state.ceilingHeight = parseFloat(els.ceilingHeightSlider.value);
+      if (els.ceilingHeightNumber) els.ceilingHeightNumber.value = state.ceilingHeight;
       updateCalculation();
+    });
+  }
+  if (els.ceilingHeightNumber) {
+    els.ceilingHeightNumber.addEventListener("input", () => {
+      const val = parseFloat(els.ceilingHeightNumber.value);
+      if (!isNaN(val) && val >= 2.0 && val <= 4.0) {
+        state.ceilingHeight = val;
+        if (els.ceilingHeightSlider) els.ceilingHeightSlider.value = val;
+        updateCalculation();
     }
   });
 
